@@ -1,3 +1,7 @@
+import slugify from "slugify";
+import xss from "xss";
+import fs from "node:fs";
+
 const dummyMeals = [
   {
     title: "Juicy Cheese Burger",
@@ -115,6 +119,7 @@ const dummyMeals = [
     creator: "Mario Rossi",
     creator_email: "mariorossi@example.com",
   },
+
   {
     title: "Wiener Schnitzel",
     slug: "wiener-schnitzel",
@@ -172,4 +177,21 @@ function getMeal(slug) {
   return dummyMeals.find((meal) => meal.slug === slug);
 }
 
-export { getMeals, getMeal };
+async function saveMeal(meal) {
+  meal.slug = slugify(meal.title, { lower: true });
+  meal.instructions = xss(meal.instructions);
+  const extension = meal.image.name.split(".").pop();
+  const fileName = `${meal.slug}.${extension}`;
+  const stream = fs.createWriteStream(`public/images/${fileName}`);
+  const buffer = await meal.image.arrayBuffer();
+  stream.write(Buffer.from(buffer), (err) => {
+    if (err) {
+      throw new Error("Failed to save image");
+    }
+  });
+  meal.image = `/images/${fileName}`;
+  //   console.log(meal);
+  dummyMeals.push(meal);
+}
+
+export { getMeals, getMeal, saveMeal };

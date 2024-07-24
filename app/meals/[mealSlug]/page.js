@@ -4,6 +4,20 @@ import { notFound } from "next/navigation";
 import { getMeal } from "../../../initdb";
 import classes from "./page.module.css";
 
+export async function generateMetadata({ params }) {
+  const meal = getMeal(params.mealSlug);
+
+  if (!meal) {
+    notFound();
+  }
+
+  return {
+    title: meal.title,
+    description: meal.summary,
+    image: meal.image,
+  };
+}
+
 export default function MealDetailsPage({ params }) {
   const meal = getMeal(params.mealSlug);
 
